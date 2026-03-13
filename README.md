@@ -9,7 +9,8 @@
     Шлюз в интернет: MikroTik 192.168.10.1
 
     Локальная сеть: 192.168.5.0/24
-<img width="1910" height="892" alt="Screenshot From 2026-02-27 14-14-18" src="https://github.com/user-attachments/assets/9e46e8cc-c13b-42d7-b4b6-68df9e1d5e14" />
+<img width="1722" height="679" alt="Screenshot From 2026-03-13 17-13-27" src="https://github.com/user-attachments/assets/44df202b-d2fa-4455-98c1-39cc3147f524" />
+
 
 
 🖥️ Инфраструктура (всё крутится на Proxmox)
