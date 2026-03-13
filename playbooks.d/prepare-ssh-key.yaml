@@ -1,0 +1,24 @@
+- name: Prepare SSH key from vault
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars_files:
+    - ../secrets/secrets.yml
+  
+  tasks:
+    - name: Create .ansible/tmp directory if not exists
+      ansible.builtin.file:
+        path: "{{ lookup('env', 'HOME') }}/.ansible/tmp"
+        state: directory
+        mode: '0700'
+    
+    - name: Write SSH private key from vault
+      ansible.builtin.copy:
+        content: "{{ vault_ssh_private_key }}"
+        dest: "{{ lookup('env', 'HOME') }}/.ansible/tmp/ansible-key"
+        mode: '0600'
+      no_log: true  # не показывать содержимое в логах
+    
+    - name: Set fact with key path
+      ansible.builtin.set_fact:
+        ssh_key_path: "{{ lookup('env', 'HOME') }}/.ansible/tmp/ansible-key"

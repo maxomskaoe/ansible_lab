@@ -1,0 +1,20 @@
+- name: conf dnsmasq
+  hosts: routers
+  become: yes
+
+  tasks:
+    - name: Add custom dnsmasq conf enable dhcp domain
+      ansible.builtin.copy:
+        dest: /etc/dnsmasq.d/lab.conf
+        content: |
+          domain=lab
+          expand-hosts
+          dhcp-option=15,lab
+        mode: '0644'
+      notify: restart dnsmasq
+
+  handlers:
+    - name: restart dnsmasq
+      ansible.builtin.systemd:
+        name: dnsmasq
+        state: restarted

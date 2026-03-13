@@ -1,0 +1,33 @@
+---
+- name: Диагностика сетевых менеджеров
+  hosts: all
+  become: no
+  
+  tasks:
+    - name: Проверить наличие netplan
+      stat:
+        path: /etc/netplan
+      register: netplan_dir
+      
+    - name: Проверить NetworkManager
+      systemd:
+        name: NetworkManager
+      register: nm_status
+      
+    - name: Проверить systemd-networkd
+      systemd:
+        name: systemd-networkd
+      register: networkd_status
+      
+    - name: Проверить ifupdown конфиг
+      stat:
+        path: /etc/network/interfaces
+      register: ifupdown_conf
+      
+    - name: Показать результаты
+      debug:
+        msg: |
+          Netplan: {{ 'есть' if netplan_dir.stat.exists else 'нет' }}
+          NetworkManager: {{ 'работает' if nm_status.status.ActiveState == 'active' else 'не работает' }}
+          systemd-networkd: {{ 'работает' if networkd_status.status.ActiveState == 'active' else 'не работает' }}
+          ifupdown: {{ 'есть конфиг' if ifupdown_conf.stat.exists else 'нет конфига' }}

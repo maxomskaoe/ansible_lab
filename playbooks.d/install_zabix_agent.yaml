@@ -1,0 +1,73 @@
+- name: Install and configure Zabbix Agent
+  hosts: all_except_truenas:!zabbix
+  become: yes
+  
+  tasks:
+    - name: Download Zabbix release package (Ubuntu)
+      ansible.builtin.get_url:
+        url: "https://repo.zabbix.com/zabbix/7.4/release/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest_7.4+ubuntu24.04_all.deb"
+        dest: /tmp/zabbix-release.deb
+        mode: '0644'
+      when: ansible_facts['os_family'] == 'Debian' and ansible_facts['distribution'] == 'Ubuntu'
+    
+    - name: Download Zabbix release package (Debian)
+      ansible.builtin.get_url:
+        url: "https://repo.zabbix.com/zabbix/7.4/release/debian/pool/main/z/zabbix-release/zabbix-release_latest_7.4+debian13_all.deb"
+        dest: /tmp/zabbix-release.deb
+        mode: '0644'
+      when: ansible_facts['os_family'] == 'Debian' and ansible_facts['distribution'] == 'Debian'
+    
+    - name: Install Zabbix repository
+      ansible.builtin.apt:
+        deb: /tmp/zabbix-release.deb
+    
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+    
+    - name: Install Zabbix agent
+      ansible.builtin.apt:
+        name: zabbix-agent
+        state: present
+
+    - name: Create custom Zabbix agent configuration
+      ansible.builtin.copy:
+        dest: /etc/zabbix/zabbix_agentd.d/custom.conf
+        content: |
+          # Custom Zabbix Agent configuration
+          # Managed by Ansible - DO NOT EDIT MANUALLY
+          # Created: {{ ansible_date_time.iso8601 }}
+          
+          # Zabbix server configuration
+          Server=192.168.5.102
+          ServerActive=192.168.5.102
+          
+          # Hostname configuration (use system hostname)
+          Hostname={{ inventory_hostname }}
+          
+          # Optional: Enable remote commands if needed
+          # EnableRemoteCommands=1
+          
+          # Optional: Debug level (0-5)
+          # DebugLevel=3
+        mode: '0644'
+        owner: root
+        group: root
+      notify: restart zabbix-agent
+
+    - name: Start and enable Zabbix agent
+      ansible.builtin.systemd:
+        name: zabbix-agent
+        state: started
+        enabled: yes
+
+    - name: Clean up downloaded package
+      ansible.builtin.file:
+        path: /tmp/zabbix-release.deb
+        state: absent
+  
+  handlers:
+    - name: restart zabbix-agent
+      ansible.builtin.systemd:
+        name: zabbix-agent
+        state: restarted

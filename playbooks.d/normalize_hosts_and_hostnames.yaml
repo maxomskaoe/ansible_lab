@@ -1,0 +1,30 @@
+- name: Normalize hostnames and /etc/hosts
+  hosts: all
+  become: yes
+  vars:
+    domain: "lab"
+    hosts_entries:
+      - { ip: "127.0.0.1", names: ["localhost"] }
+      - { ip: "127.0.1.1", names: ["{{ ansible_hostname }}.{{ domain }}", "{{ ansible_hostname }}"] }
+      - { ip: "192.168.5.151", names: ["pve1.{{ domain }}", "pve1"] }
+      - { ip: "192.168.5.152", names: ["pve2.{{ domain }}", "pve2"] }
+      - { ip: "192.168.5.153", names: ["pve3.{{ domain }}", "pve3"] }
+      - { ip: "192.168.5.160", names: ["pbs.{{ domain }}", "pbs"] }
+      - { ip: "192.168.5.171", names: ["pverouter1.{{ domain }}", "pverouter1"] }
+      - { ip: "192.168.5.172", names: ["pverouter2.{{ domain }}", "pverouter2"] }
+      - { ip: "192.168.5.102", names: ["zabbix.{{ domain }}", "zabbix"] }
+      - { ip: "192.168.5.200", names: ["truenas.{{ domain }}", "truenas"] }
+
+  tasks:
+    - name: Set hostname with domain
+      hostname:
+        name: "{{ ansible_hostname }}.{{ domain }}"
+      when: ansible_hostname != "truenas"  # TrueNAS отдельно
+
+    - name: Build /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        regexp: "^{{ item.ip }}"
+        line: "{{ item.ip }}\t{{ item.names | join(' ') }}"
+        create: yes
+      loop: "{{ hosts_entries }}"

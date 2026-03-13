@@ -1,0 +1,72 @@
+all:
+  vars:
+      ansible_user: maxomskaoe
+  hosts:
+    #routers
+    router1:
+      ansible_host: 192.168.5.171
+    router2:
+      ansible_host: 192.168.5.172
+    #Proxmox_nodes
+    pve1:
+      ansible_host: 192.168.5.151
+    pve2:
+      ansible_host: 192.168.5.152
+    pve3:
+      ansible_host: 192.168.5.153
+    #Servers
+    truenas:
+      ansible_host: 192.168.5.200
+    proxmox_backup:
+      ansible_host: 192.168.5.160       
+    #Services
+    zabbix:
+      ansible_host: 192.168.5.102
+    win11test:
+      ansible_host: 192.168.5.180
+    #Groups
+  children:
+    routers:
+      hosts:
+        router1:
+        router2:
+    proxmox_cluster:
+      hosts:
+        pve1:
+        pve2:
+        pve3:
+    storage:
+      hosts:
+        truenas:
+        proxmox_backup:
+    linux_hosts:
+      hosts:
+        router1:
+        router2:
+    all_except_truenas:
+      children:
+        routers:
+        proxmox_cluster:
+      hosts:
+        proxmox_backup:
+        zabbix:
+    ubuntu:
+      hosts:
+        zabbix:
+      children:
+        routers:
+    debian:
+      children:
+        proxmox_cluster:
+      hosts:
+        proxmox_backup:
+    windows_hosts:
+      hosts:
+        win11test:
+      vars:
+        ansible_connection: ssh
+        ansible_winrm_server_cert_validation: ignore
+        ansible_shell_type: powershell
+        ansible_become: true
+        ansible_become_method: runas
+        ansible_become_user: maxomskaoe        

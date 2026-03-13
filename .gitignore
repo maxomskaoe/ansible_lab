@@ -1,0 +1,15 @@
+# Ключи и секреты
+keyid
+keyid.pub
+*.pem
+*.key
+.vault_pass
+ansible.log
+scripts/
+# Временные файлы
+tmp/
+*.retry
+
+# Локальные настройки
+ansible.cfg.local
+.env

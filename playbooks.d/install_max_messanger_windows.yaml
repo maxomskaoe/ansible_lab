@@ -1,0 +1,40 @@
+---
+- name: Скачать и установить программу на Windows
+  hosts: windows_hosts
+  gather_facts: yes
+  vars:
+    app_url: "https://trk.mail.ru/c/h172vv5"  
+    app_installer: "C:\\Install\\MAX.msi"  
+    app_name: "Max_Messanger"                         
+    app_exe_path: "C:\\Program Files\\MAX\\max.exe"
+    shortcut_path: "C:\\Users\\User\\Desktop\\MAX.lnk"
+  tasks:
+    - name: Создать директорию
+      ansible.windows.win_file:
+        path: C:\Install
+        state: directory
+    
+    - name: Скачать установщик
+      ansible.windows.win_get_url:
+        url: "{{ app_url }}"
+        dest: "{{ app_installer }}"
+        force: no
+      register: download_result
+
+    - name: Установить программу через msiexec
+      ansible.windows.win_command: 
+        cmd: msiexec /i "{{ app_installer }}" /quiet /norestart
+      register: install_result
+
+    - name: Создать ярлык на рабочем столе
+      community.windows.win_shortcut:
+        src: "{{ app_exe_path }}"
+        dest: "{{ shortcut_path }}"
+        description: "Max Messenger"
+      when: install_result.changed
+
+    - name: Удалить установщик
+      ansible.windows.win_file:
+        path: "{{ app_installer }}"
+        state: absent
+      when: install_result.changed

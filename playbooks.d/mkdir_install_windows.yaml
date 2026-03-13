@@ -1,0 +1,26 @@
+---
+- name: Настройка папки C:/Install на всех Windows
+  hosts: windows_hosts
+  gather_facts: no 
+
+  tasks:
+    - name: Создать директорию C:/Install
+      ansible.windows.win_file:
+        path: C:/Install
+        state: directory
+
+    - name: Установить владельца maxomskaoe
+      ansible.windows.win_owner:
+        path: C:/Install
+        user: maxomskaoe
+        recurse: yes
+
+    - name: Дать права группе Users на чтение и запуск
+      ansible.windows.win_acl:
+        path: C:/Install
+        user: S-1-5-32-545
+        rights: ReadAndExecute
+        type: allow
+        state: present
+        inherit: ContainerInherit, ObjectInherit
+

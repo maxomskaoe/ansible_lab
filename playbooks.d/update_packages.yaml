@@ -1,0 +1,21 @@
+# Создайте playbook для обновления
+# update_packages.yml
+---
+- name: Update all packages on Ubuntu/Debian hosts
+  hosts: all_except_truenas
+  
+  tasks:
+    #- name: Remove unused dependencies
+      #ansible.builtin.apt:
+        #autoremove: yes
+    
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+    
+    - name: Upgrade all packages
+      ansible.builtin.apt:
+        upgrade: dist
+        autoremove: yes
+        autoclean: yes

@@ -1,0 +1,73 @@
+---
+- name: настройка iptables правил для роутера 
+  hosts: routers
+  become: yes
+  become_method: sudo
+
+  tasks:
+    # VKLU4AEM IPFORWARD V CORE
+    - name: vklu4it IP forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: 1
+        sysctl_set: yes
+        state: present
+        reload: yes
+
+    # CLEAR FORWARD RULES
+    - name: Clear dublicates FORWARD rules
+      command: iptables -F FORWARD
+
+    # CLEAR NAT RULES
+    - name: Clear dublicates NAT rules
+      command: iptables -t nat -F POSTROUTING
+
+    # NAT MASQUERADE - HOSTI V INET GOOOOO
+    - name: vklu4it postrouting  
+      ansible.builtin.iptables:
+        table: nat
+        chain: POSTROUTING
+        out_interface: ens18
+        jump: MASQUERADE
+
+    # LET INSIDE HOSTS CONNECT TO THE OUTSIDE
+    - name: forward ens19-ens18 accept
+      ansible.builtin.iptables:
+        chain: FORWARD
+        in_interface: ens19
+        out_interface: ens18
+        jump: ACCEPT
+
+    # LET INSIDE HOSTS GET CONNECTION FROM OUTSIDE
+    - name: forward ens18-ens19 state ESTAB,RELATED
+      ansible.builtin.iptables:
+        chain: FORWARD
+        in_interface: ens18
+        out_interface: ens19
+        ctstate: ESTABLISHED,RELATED
+        jump: ACCEPT
+
+    # SAVE RULES IPTABLES
+    - name: Save rules iptables
+      shell: iptables-save > /etc/iptables/rules.v4
+      args:
+        creates: /etc/iptables/rules.v4
+      when: ansible_os_family == "Debian"
+
+    - name: SHOW NAT RULES
+      command: iptables -t nat -L -n -v
+      register: nat_rules
+      check_mode: no
+
+    - name: SHOW RULES FORWARD
+      command: iptables -L FORWARD -n -v
+      register: forward_rules
+      check_mode: no
+
+    - name: SHOW RULE FORWARD
+      debug:
+        var: forward_rules.stdout
+
+    - name: SHOW NAT RULES
+      debug: 
+        var: nat_rules.stdout

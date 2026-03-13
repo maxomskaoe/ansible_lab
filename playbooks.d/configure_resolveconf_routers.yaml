@@ -1,0 +1,32 @@
+- name: configure /etc/resolve.conf
+  hosts: routers
+  become: yes
+
+  tasks:
+    - name: replace nameserver with 127.0.0.1
+      ansible.builtin.copy:
+        dest: /etc/resolv.conf
+        content: |
+          domain=lab
+          expand-hosts
+          nameserver 127.0.0.1
+        mode: '0644'
+        owner: root
+        group: root
+      notify: make resolv.conf immutable
+
+
+    - name: Test DNS resolution
+      ansible.builtin.command: nslookup win11test 127.0.0.1
+      register: dns_test
+      changed_when: false
+      ignore_errors: yes 
+
+    - name: Show DNS test result
+      ansible.builtin.debug:
+        msg: "DNS test: {{ '✅ OK' if dns_test is success else '❌ Failed' }}"
+
+  handlers:
+  - name: make resolv.conf immutable
+    ansible.builtin.command: chattr +i /etc/resolv.conf
+    listen: make resolv.conf immutable

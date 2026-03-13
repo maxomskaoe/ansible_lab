@@ -1,0 +1,23 @@
+- name: Completely clean Zabbix main config - comment out all Server/ServerActive lines
+  hosts: all_except_truenas
+  become: yes
+  
+  tasks:
+    - name: Comment out ALL Server lines (including duplicates)
+      ansible.builtin.lineinfile:
+        path: /etc/zabbix/zabbix_agentd.conf
+        regexp: '^Server='
+        line: '# Server='
+        backrefs: yes
+
+    - name: Comment out ALL ServerActive lines (including duplicates)
+      ansible.builtin.lineinfile:
+        path: /etc/zabbix/zabbix_agentd.conf
+        regexp: '^ServerActive='
+        line: '# ServerActive='
+        backrefs: yes
+
+    - name: Restart Zabbix agent to apply changes
+      ansible.builtin.systemd:
+        name: zabbix-agent
+        state: restarted
