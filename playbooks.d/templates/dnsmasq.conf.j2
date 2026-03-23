@@ -1,0 +1,45 @@
+# Managed by Ansible - DO NOT EDIT MANUALLY
+# Generated: {{ ansible_date_time.iso8601 }}
+# Host: {{ inventory_hostname }}
+# VIP 192.168.5.1 is managed by keepalived
+
+# Interfaces to listen on
+interface={{ internal_interface }}
+interface={{ external_interface }}
+bind-dynamic
+
+# Listen addresses (always listen on own IP and localhost)
+listen-address=127.0.0.1
+listen-address={{ ansible_default_ipv4.address }}
+
+# VIP address - will be available when keepalived is MASTER
+# If VIP is not configured, dnsmasq will still start
+{% if 'router1' in inventory_hostname or 'router2' in inventory_hostname %}
+listen-address=192.168.5.1
+{% endif %}
+
+# Upstream DNS servers
+no-resolv
+{% for dns in upstream_dns %}
+server={{ dns }}
+{% endfor %}
+
+# DHCP configuration
+# Use different ranges for each router to avoid conflicts
+{% if inventory_hostname == 'router1' %}
+dhcp-range={{ dhcp_range_start_primary }},{{ dhcp_range_end_primary }},24h
+{% else %}
+dhcp-range={{ dhcp_range_start_secondary }},{{ dhcp_range_end_secondary }},24h
+{% endif %}
+
+dhcp-option=3,192.168.5.1
+dhcp-option=6,192.168.5.171,192.168.5.172
+
+# Domain settings
+domain=lab
+expand-hosts
+dhcp-option=15,lab
+
+# Logging
+log-queries
+log-dhcp
