@@ -33,8 +33,8 @@ dhcp-range={{ dhcp_range_start_secondary }},{{ dhcp_range_end_secondary }},24h
 {% endif %}
 
 dhcp-option=3,192.168.5.1
-dhcp-option=6,192.168.5.171,192.168.5.172
-
+dhcp-option=6,192.168.5.1
+dhcp-option=12,hostname
 # Domain settings
 domain=lab
 expand-hosts
