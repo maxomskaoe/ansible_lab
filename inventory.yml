@@ -24,6 +24,8 @@ all:
       ansible_host: 192.168.5.102
     win11test:
       ansible_host: 192.168.5.180
+    ansible303:
+      ansible_host: 192.168.5.182
     #Groups
   children:
     routers:
@@ -50,9 +52,11 @@ all:
       hosts:
         proxmox_backup:
         zabbix:
+        ansible303:
     ubuntu:
       hosts:
         zabbix:
+        ansible303:
       children:
         routers:
     debian:
