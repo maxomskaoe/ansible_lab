@@ -3,27 +3,56 @@ services:
     image: rustdesk/rustdesk-server:latest
     container_name: hbbs
     restart: unless-stopped
-    ports:
-      - "21115:21115"
-      - "21116:21116"
-      - "21116:21116/udp"
-      - "21118:21118"
+    networks:
+      - rustdesk-net
+    #ports:
+    #  - "127.0.0.1:21115:21115"
+    #  - "127.0.0.1:21116:21116"
+    #  - "127.0.0.1:21116:21116/udp"
+    #  - "127.0.0.1:21118:21118" 
     volumes:
       - ./data:/root
     command: hbbs
     #network_mode: "host"
-    depends_on:
-      - hbbr
-
 
   hbbr:
     image: rustdesk/rustdesk-server:latest
     container_name: hbbr
     restart: unless-stopped
-    ports:
-      - "21117:21117"
-      - "21119:21119"
+    networks:
+      - rustdesk-net
+    #ports:
+    #  - "127.0.0.1:21117:21117" 
+    #  - "127.0.0.1:21119:21119" 
     volumes:
       - ./data:/root
     command: hbbr
     #network_mode: "host"
+
+  nginx:
+    image: nginx:alpine
+    container_name: rustdesk-nginx
+    restart: unless-stopped
+      #networks:
+      #- rustdesk-net
+    ports:
+      - "0.0.0.0:21115:21115" 
+      - "0.0.0.0:21116:21116"  
+      - "0.0.0.0:21116:21116/udp"
+      - "0.0.0.0:21117:21117"
+      - "0.0.0.0:21118:21118"
+      - "0.0.0.0:21119:21119"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - hbbs
+      - hbbr
+    command: nginx
+    network_mode: "host"
+
+networks:
+  rustdesk-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24 
