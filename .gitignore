@@ -5,7 +5,6 @@ keyid.pub
 *.key
 .vault_pass
 ansible.log
-scripts/
 # Временные файлы
 tmp/
 *.retry
