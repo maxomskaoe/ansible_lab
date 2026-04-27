@@ -98,24 +98,46 @@ global_defs {
     router_id ROUTER1_MASTER
 }
 
-vrrp_instance VI_1 {
-    state MASTER                    # Этот роутер - MASTER
-    interface ens19                 # LAN интерфейс
-    virtual_router_id 51            # ОДИНАКОВЫЙ с первым роутером!
-    priority 150                    # Приоритет ВЫШЕ (у первого 100)
-    
-    advert_int 1                    # Частота анонсов (сек)
+# LAN VIP — шлюз для клиентов
+vrrp_instance LAN {
+    state MASTER
+    interface ens19
+    virtual_router_id 51
+    priority 150
+    advert_int 1
     
     authentication {
         auth_type PASS
-        auth_pass test123  # ПАРОЛЬ ДОЛЖЕН БЫТЬ ОДИНАКОВЫМ!
+        auth_pass maxomsk
     }
     
     virtual_ipaddress {
-        192.168.5.1/24 dev ens19   # ВИРТУАЛЬНЫЙ IP для клиентов
+        192.168.5.1/24 dev ens19
     }
     
-    # Отслеживаем WAN интерфейс
+    track_interface {
+        ens18
+        ens19
+    }
+}
+
+# WAN VIP — для входящих подключений
+vrrp_instance WAN {
+    state MASTER
+    interface ens18
+    virtual_router_id 52
+    priority 150
+    advert_int 1
+    
+    authentication {
+        auth_type PASS
+        auth_pass maxomsk
+    }
+    
+    virtual_ipaddress {
+        192.168.10.1/24 dev ens18
+    }
+    
     track_interface {
         ens18
     }
